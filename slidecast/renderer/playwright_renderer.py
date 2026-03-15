@@ -64,9 +64,8 @@ def _export_windows(
             slide = prs.Slides(i)
             slide.SlideShowTransition.AdvanceOnTime = True
             if slide_durations and (i - 1) < len(slide_durations):
-                # WAV 길이 + 1초 여유 (음성 끝난 뒤 잠깐 머문 후 전환)
                 import math
-                slide.SlideShowTransition.AdvanceTime = math.ceil(slide_durations[i - 1]) + 1
+                slide.SlideShowTransition.AdvanceTime = math.ceil(slide_durations[i - 1])
             else:
                 slide.SlideShowTransition.AdvanceTime = int(default_duration)
 
@@ -115,7 +114,7 @@ def _export_macos(
         for idx, dur in enumerate(slide_durations):
             slide_num = idx + 1
             import math
-            secs = math.ceil(dur) + 1  # WAV 길이 + 1초 여유
+            secs = math.ceil(dur)
             timing_parts.append(
                 f'set theTransition to slide transition of slide {slide_num} of thePresentation\n'
                 f'set advance on time of theTransition to true\n'
