@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"C:\\\\Users\\\\leedonwoo\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python314\\\\python.exe\" -c \":*)",
+      "Read(//c/Users/leedonwoo/Desktop/영상/**)",
+      "Bash(explorer \"d:\\\\00work\\\\260312-PPT2slidedeck\\\\tests\\\\html_preview\\\\html\")",
+      "Bash(start \"\" \"d:\\\\00work\\\\260312-PPT2slidedeck\\\\tests\\\\html_preview\\\\html\\\\slide_000.html\")",
+      "Bash(start \"\" \"d:\\\\00work\\\\260312-PPT2slidedeck\\\\tests\\\\html_preview_real\\\\html\\\\slide_000.html\")",
+      "Bash(start \"\" \"C:\\\\Users\\\\leedonwoo\\\\Desktop\\\\영상\\\\output_v2.mp4\")",
+      "Bash(start \"\" \"C:\\\\Users\\\\leedonwoo\\\\Desktop\\\\영상\\\\output_v3.mp4\")",
+      "Bash(start \"\" \"C:\\\\Users\\\\leedonwoo\\\\Desktop\\\\영상\\\\output_v4.mp4\")"
+    ]
+  }
+}

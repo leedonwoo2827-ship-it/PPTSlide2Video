@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "pptslide2video": {
+      "command": "python",
+      "args": ["D:/00work/260312-PPT2slidedeck/server.py"],
+      "env": {}
+    }
+  }
+}

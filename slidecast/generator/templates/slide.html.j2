@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width={{ slide.width_px|int }}, initial-scale=1.0">
+  <title>Slide {{ slide.slide_index + 1 }}</title>
+  <style>
+    /* Windows 맑은 고딕 @font-face 직접 등록 (Playwright 헤드리스 환경) */
+    {{ korean_font_css }}
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: {{ slide.width_px|int }}px;
+      height: {{ slide.height_px|int }}px;
+      overflow: hidden;
+      background-color: {{ slide.background_color }};
+      /* 한글 폰트: Windows 맑은 고딕 → 없으면 Noto Sans KR 계열 fallback */
+      font-family: "Malgun Gothic", "맑은 고딕", "Apple SD Gothic Neo",
+                   "Noto Sans KR", "나눔고딕", sans-serif;
+    }
+
+    .slide-container {
+      position: relative;
+      width: {{ slide.width_px|int }}px;
+      height: {{ slide.height_px|int }}px;
+      background-color: {{ slide.background_color }};
+      overflow: hidden;
+    }
+
+    .slide-shape {
+      position: absolute;
+      overflow: hidden;
+    }
+
+    {% for shape in slide.shapes %}
+    #{{ shape.css_id }} {
+      left: {{ shape.left_px }}px;
+      top: {{ shape.top_px }}px;
+      width: {{ shape.width_px }}px;
+      height: {{ shape.height_px }}px;
+      {% if shape.rotation != 0 %}
+      transform: rotate({{ shape.rotation }}deg);
+      {% endif %}
+      {% if shape.fill_color %}
+      background-color: {{ shape.fill_color }};
+      {% endif %}
+      {% if shape.border_color and shape.border_width_px > 0 %}
+      border: {{ shape.border_width_px }}px solid {{ shape.border_color }};
+      {% endif %}
+    }
+    {% endfor %}
+
+    .shape-text {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 8px 12px;
+      word-wrap: break-word;
+      overflow: hidden;
+      font-family: inherit;
+    }
+
+    .shape-paragraph {
+      line-height: 1.5;
+      margin-bottom: 4px;
+    }
+
+    .char { display: inline; }
+
+    img.shape-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide-container">
+    {% for shape in slide.shapes %}
+
+    {% if shape.shape_type == 'table' and shape.table_data %}
+    <div id="{{ shape.css_id }}" class="slide-shape">
+      <table style="width:100%; height:100%; border-collapse:collapse; table-layout:fixed;">
+        {% if shape.col_widths %}
+        <colgroup>
+          {% for cw in shape.col_widths %}
+          <col style="width:{{ cw }}px;">
+          {% endfor %}
+        </colgroup>
+        {% endif %}
+        {% for row in shape.table_data %}
+        <tr>
+          {% for cell in row %}
+          <td style="
+            padding: 6px 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+            vertical-align: middle;
+            {% if cell.fill_color %}background-color: {{ cell.fill_color }};{% endif %}
+          ">
+            {% for para in cell.paragraphs %}
+            <p style="margin:2px 0; text-align:{{ para.alignment }}; line-height:1.4;">
+              {% for run in para.runs %}
+              <span style="
+                font-size:{{ run.font_size_px }}px;
+                color:{{ run.color }};
+                font-family:'Malgun Gothic','맑은 고딕',sans-serif;
+                {% if run.bold %}font-weight:bold;{% endif %}
+                {% if run.italic %}font-style:italic;{% endif %}
+              ">{{ run.text }}</span>
+              {% endfor %}
+            </p>
+            {% endfor %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    {% elif shape.shape_type == 'picture' and shape.image_path %}
+    <div id="{{ shape.css_id }}" class="slide-shape">
+      <img class="shape-img" src="file:///{{ shape.image_path | replace('\\', '/') }}" alt="{{ shape.name }}">
+    </div>
+
+    {% elif shape.shape_type in ('text_box', 'title') and shape.paragraphs %}
+    <div id="{{ shape.css_id }}" class="slide-shape">
+      <div class="shape-text">
+        {% for para in shape.paragraphs %}
+        <p class="shape-paragraph" style="text-align: {{ para.alignment }};">
+          {% for run in para.runs %}
+          <span style="
+            font-size: {{ run.font_size_px }}px;
+            color: {{ run.color }};
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            {% if run.bold %}font-weight: bold;{% endif %}
+            {% if run.italic %}font-style: italic;{% endif %}
+          ">{{ run.text }}</span>
+          {% endfor %}
+        </p>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% else %}
+    <div id="{{ shape.css_id }}" class="slide-shape">
+      {% if shape.text %}
+      <div class="shape-text">
+        <p style="font-size: 16px; color: #333; font-family: 'Malgun Gothic', sans-serif;">{{ shape.text }}</p>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% endfor %}
+  </div>
+
+  {# GSAP 인라인 삽입 — file:// 차단 문제 해결 #}
+  <script>{{ gsap_inline }}</script>
+  <script>
+  (function() {
+    // type_in 도형의 텍스트를 글자 단위 span으로 분리
+    {% for shape in slide.shapes %}
+    {% if shape.animation_hint == 'type_in' %}
+    (function() {
+      var el = document.getElementById("{{ shape.css_id }}");
+      if (!el) return;
+      var spans = el.querySelectorAll("span");
+      spans.forEach(function(span) {
+        var text = span.textContent;
+        span.textContent = "";
+        text.split("").forEach(function(ch) {
+          var c = document.createElement("span");
+          c.className = "char";
+          c.textContent = ch;
+          span.appendChild(c);
+        });
+      });
+    })();
+    {% endif %}
+    {% endfor %}
+
+    var tl = gsap.timeline({
+      onComplete: function() {
+        document.body.setAttribute("data-timeline-done", "true");
+      }
+    });
+
+    {% for shape in slide.shapes %}
+    {% if shape.animation_hint == 'none' %}
+    gsap.set("#{{ shape.css_id }}", { opacity: 1 });
+
+    {% elif shape.animation_hint == 'type_in' %}
+    tl.set("#{{ shape.css_id }}", { opacity: 1 }, {{ shape.delay }});
+    tl.from("#{{ shape.css_id }} .char", {
+      opacity: 0,
+      duration: 0.04,
+      stagger: 0.04,
+      ease: "none"
+    }, {{ shape.delay }});
+
+    {% else %}
+    tl.from("#{{ shape.css_id }}", {{ shape | gsap_from_json }}, {{ shape.delay }});
+    {% endif %}
+    {% endfor %}
+
+    {% if slide.shapes | selectattr('animation_hint', 'ne', 'none') | list | length == 0 %}
+    setTimeout(function() {
+      document.body.setAttribute("data-timeline-done", "true");
+    }, 500);
+    {% endif %}
+  })();
+  </script>
+</body>
+</html>

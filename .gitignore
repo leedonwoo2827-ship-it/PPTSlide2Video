@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Test outputs (generated files - not committed)
+tests/output/
+tests/fixtures/sample.mp3
+tests/fixtures/sample.pptx
+
+# Temp rendering files
+ppt2slide_*/
+*.webm
+
+# Generated static assets (downloaded at runtime)
+ppt2slidedeck/generator/static/gsap.min.js
+
+# Test debug/preview files
+tests/html_preview*/
+tests/sc_debug_*/
+tests/*.png
+
+# Claude local settings
+.claude/settings.local.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
